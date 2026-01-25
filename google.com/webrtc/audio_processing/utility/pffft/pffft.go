@@ -1,0 +1,3 @@
+package pffft
+
+import "C"
