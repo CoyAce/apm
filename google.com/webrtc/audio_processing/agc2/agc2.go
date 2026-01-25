@@ -1,0 +1,19 @@
+package agc2
+
+// #cgo CXXFLAGS: -I${SRCDIR}/../..
+// #cgo CXXFLAGS: -I${SRCDIR}/../../../abseil-cpp
+// #cgo CXXFLAGS: -DWEBRTC_APM_DEBUG_DUMP=0
+// #cgo CXXFLAGS: -std=c++17
+// #cgo arm,neon CXXFLAGS: -mfpu=neon -mfloat-abi=hard -DWEBRTC_HAS_NEON
+// #cgo arm64 CXXFLAGS: -DWEBRTC_HAS_NEON -DWEBRTC_ARCH_ARM64
+// #cgo arm7 CXXFLAGS: -DWEBRTC_HAS_NEON -DWEBRTC_ARCH_ARM_V7
+// #cgo darwin CXXFLAGS: -DWEBRTC_MAC -DWEBRTC_POSIX
+// #cgo ios CXXFLAGS: -DWEBRTC_IOS -DWEBRTC_MAC -DWEBRTC_POSIX
+// #cgo linux CXXFLAGS: -DWEBRTC_LINUX -DWEBRTC_POSIX
+// #cgo android CXXFLAGS: -DWEBRTC_LINUX -DWEBRTC_ANDROID -DWEBRTC_POSIX
+// #cgo windows CXXFLAGS: -DWEBRTC_WIN
+import "C"
+
+import (
+	_ "github.com/CoyAce/apm/google.com/webrtc/audio_processing/agc2/rnn_vad"
+)
