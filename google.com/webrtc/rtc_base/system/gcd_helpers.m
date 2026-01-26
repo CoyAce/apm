@@ -8,6 +8,7 @@
  *  be found in the AUTHORS file in the root of the source tree.
  */
 
+#if defined(__APPLE__)
 #include "rtc_base/system/gcd_helpers.h"
 
 dispatch_queue_t RTCDispatchQueueCreateWithTarget(const char *label,
@@ -20,3 +21,4 @@ dispatch_queue_t RTCDispatchQueueCreateWithTarget(const char *label,
   dispatch_set_target_queue(queue, target);
   return queue;
 }
+#endif

@@ -12,6 +12,7 @@
 // The implementation uses Grand Central Dispatch queues (GCD) to
 // do the actual task queuing.
 
+#if defined(__APPLE__)
 #include "rtc_base/task_queue_gcd.h"
 
 #include <dispatch/dispatch.h>
@@ -160,3 +161,4 @@ std::unique_ptr<TaskQueueFactory> CreateTaskQueueGcdFactory() {
 }
 
 }  // namespace webrtc
+#endif
