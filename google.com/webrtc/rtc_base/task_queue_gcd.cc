@@ -27,7 +27,7 @@
 #include "api/units/time_delta.h"
 #include "rtc_base/checks.h"
 #include "rtc_base/logging.h"
-#include "rtc_base/system/gcd_helpers.h"
+#include "rtc_base/system/darwin/gcd_helpers.h"
 
 namespace webrtc {
 namespace {

@@ -1,4 +1,4 @@
-package synchronization
+package system
 
 // #cgo CFLAGS: -I${SRCDIR}/../..
 // #cgo CXXFLAGS: -I${SRCDIR}/../..
