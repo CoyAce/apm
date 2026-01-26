@@ -56,6 +56,17 @@ func New(config Config) (*Processor, error) {
 	return p, nil
 }
 
+func (p *Processor) Initialize() {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+
+	if p.handle == nil {
+		return
+	}
+
+	p.Initialize()
+}
+
 // ProcessCapture processes microphone input (near-end signal)
 // Returns processed audio and voice activity detection result
 // Input samples should be float32 in range [-1.0, 1.0]
@@ -161,6 +172,16 @@ func (p *Processor) SetStreamDelay(delayMs int) error {
 
 	p.handle.SetStreamDelayMs(delayMs)
 	return nil
+}
+
+func (p *Processor) StreamDelay() int {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+
+	if p.handle == nil {
+		return -1
+	}
+	return p.handle.StreamDelayMs()
 }
 
 // GetStats returns statistics from the last ProcessCapture call
