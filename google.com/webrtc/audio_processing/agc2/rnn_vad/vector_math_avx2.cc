@@ -8,6 +8,7 @@
  *  be found in the AUTHORS file in the root of the source tree.
  */
 
+#if defined(__i386__) || defined(_M_IX86) || defined(__x86_64__) || defined(_M_X64)
 #include <immintrin.h>
 
 #include "api/array_view.h"
@@ -52,3 +53,4 @@ float VectorMath::DotProductAvx2(ArrayView<const float> x,
 
 }  // namespace rnn_vad
 }  // namespace webrtc
+#endif

@@ -8,6 +8,7 @@
  *  be found in the AUTHORS file in the root of the source tree.
  */
 
+#if defined(__i386__) || defined(_M_IX86) || defined(__x86_64__) || defined(_M_X64)
 #include <immintrin.h>
 
 #include "audio_processing/aec3/adaptive_fir_filter.h"
@@ -189,3 +190,4 @@ void ApplyFilter_Avx2(const RenderBuffer& render_buffer,
 
 }  // namespace aec3
 }  // namespace webrtc
+#endif

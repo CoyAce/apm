@@ -8,6 +8,7 @@
  *  be found in the AUTHORS file in the root of the source tree.
  */
 
+#if defined(__i386__) || defined(_M_IX86) || defined(__x86_64__) || defined(_M_X64)
 #include <immintrin.h>
 #include <math.h>
 
@@ -81,3 +82,4 @@ void VectorMath::AccumulateAVX2(ArrayView<const float> x, ArrayView<float> z) {
 
 }  // namespace aec3
 }  // namespace webrtc
+#endif
