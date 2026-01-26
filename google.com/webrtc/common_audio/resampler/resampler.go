@@ -5,7 +5,7 @@ package resampler
 // #cgo CXXFLAGS: -I${SRCDIR}/../../../abseil-cpp
 // #cgo CXXFLAGS: -std=c++17
 // #cgo arm,neon CXXFLAGS: -mfpu=neon -mfloat-abi=hard -DWEBRTC_HAS_NEON
-// #cgo arm64 CXXFLAGS: -mfloat-abi=hard -DWEBRTC_HAS_NEON -DWEBRTC_ARCH_ARM64
+// #cgo arm64 CXXFLAGS: -DWEBRTC_HAS_NEON -DWEBRTC_ARCH_ARM64
 // #cgo arm7 CXXFLAGS: -mfpu=neon -mfloat-abi=hard -DWEBRTC_HAS_NEON -DWEBRTC_ARCH_ARM_V7
 // #cgo darwin CXXFLAGS: -DWEBRTC_MAC -DWEBRTC_POSIX
 // #cgo ios CXXFLAGS: -DWEBRTC_IOS -DWEBRTC_MAC -DWEBRTC_POSIX
