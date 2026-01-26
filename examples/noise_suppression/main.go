@@ -33,28 +33,29 @@ func main() {
 	}
 
 	// Map level string to enum
-	var nsLevel apm.NoiseSuppressionLevel
+	var nsLevel apm.NsLevel
 	switch *level {
 	case "low":
-		nsLevel = apm.NoiseSuppressionLow
+		nsLevel = apm.NsLevelLow
 	case "moderate":
-		nsLevel = apm.NoiseSuppressionModerate
+		nsLevel = apm.NsLevelModerate
 	case "high":
-		nsLevel = apm.NoiseSuppressionHigh
+		nsLevel = apm.NsLevelHigh
 	case "veryhigh":
-		nsLevel = apm.NoiseSuppressionVeryHigh
+		nsLevel = apm.NsLevelVeryHigh
 	default:
 		log.Fatalf("Invalid noise suppression level: %s", *level)
 	}
 
 	// Create processor with noise suppression
 	processor, err := apm.New(apm.Config{
-		NumChannels: 1,
-		NoiseSuppression: &apm.NoiseSuppressionConfig{
-			Enabled: true,
-			Level:   nsLevel,
+		CaptureChannels: 1,
+		RenderChannels:  1,
+		NoiseSuppression: apm.NoiseSuppressionConfig{
+			Enabled:          true,
+			SuppressionLevel: nsLevel,
 		},
-		HighPassFilter: true, // Also enable high-pass filter to remove DC offset
+		HighPassFilterEnabled: true, // Also enable high-pass filter to remove DC offset
 	})
 	if err != nil {
 		log.Fatalf("Failed to create processor: %v", err)
@@ -93,7 +94,7 @@ func main() {
 		}
 
 		// Process the frame
-		outputBuffer, _, err := processor.ProcessCapture(inputBuffer)
+		outputBuffer, err := processor.ProcessCapture(inputBuffer)
 		if err != nil {
 			log.Fatalf("Failed to process frame: %v", err)
 		}
