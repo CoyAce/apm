@@ -64,7 +64,7 @@ func (p *Processor) Initialize() {
 		return
 	}
 
-	p.Initialize()
+	p.handle.Initialize()
 }
 
 // ProcessCapture processes microphone input (near-end signal)
