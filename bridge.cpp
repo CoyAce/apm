@@ -27,7 +27,6 @@ namespace {
         webrtc::StreamConfig render_stream_config;
         int capture_channels{};
         int render_channels{};
-        int stream_delay{};
 
         // Buffers for deinterleaved audio
         std::vector<std::vector<float>> capture_buffer;
@@ -119,13 +118,16 @@ ApmHandle Create(ApmConfig apmConfig, int *error_code) {
 
     ap->capture_channels = apmConfig.capture_channels;
     ap->render_channels = apmConfig.render_channels;
-    ap->stream_delay = apmConfig.echo_cancellation.stream_delay;
 
     int code = ap->processor->Initialize(pconfig);
     if (code != webrtc::AudioProcessing::kNoError) {
         *error_code = code;
         delete ap;
         return nullptr;
+    }
+    // set stream delay
+    if (apmConfig.echo_cancellation.enabled){
+        ap->processor->set_stream_delay_ms(apmConfig.echo_cancellation.stream_delay);
     }
 
     // Initialize buffers
@@ -175,11 +177,6 @@ int ProcessStream(ApmHandle handle, float *samples, int num_channels) {
 
     if (num_channels != ap->capture_channels)
         return webrtc::AudioProcessing::kBadParameterError;
-
-    // Set stream delay if echo cancellation is enabled
-    if (p->GetConfig().echo_canceller.enabled) {
-        p->set_stream_delay_ms(ap->stream_delay);
-    }
 
     // Deinterleave input
     deinterleave(samples, ap->capture_buffer, num_channels, APM_NUM_SAMPLES_PER_FRAME);
@@ -251,7 +248,6 @@ void set_stream_delay_ms(ApmHandle handle, int delay_ms) {
     if (!handle) return;
 
     auto *ap = static_cast<AudioProcessor *>(handle);
-    ap->stream_delay = delay_ms;
     ap->processor->set_stream_delay_ms(delay_ms);
 }
 
