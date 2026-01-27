@@ -1,7 +1,7 @@
-package rtc_base
+package stacktrace
 
-// #cgo CXXFLAGS: -I${SRCDIR}/..
-// #cgo CXXFLAGS: -I${SRCDIR}/../../abseil-cpp
+// #cgo CXXFLAGS: -I${SRCDIR}/../../../..
+// #cgo CXXFLAGS: -I${SRCDIR}/../../../../../abseil-cpp
 // #cgo CXXFLAGS: -std=c++17
 // #cgo arm,neon CXXFLAGS: -mfpu=neon -mfloat-abi=hard -DWEBRTC_HAS_NEON
 // #cgo arm64 CXXFLAGS: -DWEBRTC_HAS_NEON -DWEBRTC_ARCH_ARM64
@@ -12,12 +12,3 @@ package rtc_base
 // #cgo android CXXFLAGS: -DWEBRTC_LINUX -DWEBRTC_ANDROID -DWEBRTC_POSIX
 // #cgo windows CXXFLAGS: -DWEBRTC_WIN
 import "C"
-
-import (
-	_ "github.com/CoyAce/apm/google.com/webrtc/rtc_base/containers"
-	_ "github.com/CoyAce/apm/google.com/webrtc/rtc_base/experiments"
-	_ "github.com/CoyAce/apm/google.com/webrtc/rtc_base/memory"
-	_ "github.com/CoyAce/apm/google.com/webrtc/rtc_base/strings"
-	_ "github.com/CoyAce/apm/google.com/webrtc/rtc_base/synchronization"
-	_ "github.com/CoyAce/apm/google.com/webrtc/rtc_base/system"
-)

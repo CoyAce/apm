@@ -20,6 +20,7 @@ import (
 	_ "github.com/CoyAce/apm/google.com/webrtc/audio_processing"
 	_ "github.com/CoyAce/apm/google.com/webrtc/common_audio"
 	_ "github.com/CoyAce/apm/google.com/webrtc/rtc_base"
+	_ "github.com/CoyAce/apm/google.com/webrtc/sdk/android/native_api/stacktrace"
 	_ "github.com/CoyAce/apm/google.com/webrtc/system_wrappers/source"
 	_ "github.com/CoyAce/apm/google.com/webrtc/third_party"
 )

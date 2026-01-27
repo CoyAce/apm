@@ -12,6 +12,7 @@ import (
 	_ "github.com/CoyAce/apm/google.com/abseil-cpp/absl/functional"
 	_ "github.com/CoyAce/apm/google.com/abseil-cpp/absl/hash"
 	_ "github.com/CoyAce/apm/google.com/abseil-cpp/absl/numeric"
+	_ "github.com/CoyAce/apm/google.com/abseil-cpp/absl/profiling"
 	_ "github.com/CoyAce/apm/google.com/abseil-cpp/absl/strings"
 	_ "github.com/CoyAce/apm/google.com/abseil-cpp/absl/synchronization"
 	_ "github.com/CoyAce/apm/google.com/abseil-cpp/absl/time"
