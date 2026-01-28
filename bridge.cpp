@@ -56,12 +56,15 @@ namespace {
     webrtc::AudioProcessing::Config parseConfig(ApmConfig apmConfig) {
         webrtc::AudioProcessing::Config config;
 
+        // High pass filter
+        config.high_pass_filter.enabled = apmConfig.high_pass_filter_enabled;
+
         // Echo cancellation
         config.echo_canceller.enabled = apmConfig.echo_cancellation.enabled;
         config.echo_canceller.mobile_mode = apmConfig.echo_cancellation.mobile_mode;
-
-        // High pass filter
-        config.high_pass_filter.enabled = apmConfig.high_pass_filter_enabled;
+        if (!config.high_pass_filter.enabled) {
+            config.echo_canceller.enforce_high_pass_filtering = false;
+        }
 
         // Gain control
         config.gain_controller1.enabled = apmConfig.gain_control.enabled;
@@ -71,8 +74,6 @@ namespace {
         config.gain_controller1.target_level_dbfs = apmConfig.gain_control.target_level_dbfs;
         config.gain_controller1.compression_gain_db = apmConfig.gain_control.compression_gain_db;
         config.gain_controller1.enable_limiter = apmConfig.gain_control.enable_limiter != 0;
-
-        config.gain_controller2.enabled = apmConfig.gain_control.enabled;
 
         // Noise suppression
         config.noise_suppression.enabled = apmConfig.noise_suppression.enabled;
