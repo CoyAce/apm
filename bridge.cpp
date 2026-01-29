@@ -179,7 +179,6 @@ int ProcessStream(ApmHandle handle, float *samples, int num_channels) {
         return webrtc::AudioProcessing::kBadParameterError;
 
     auto *ap = static_cast<AudioProcessor *>(handle);
-    webrtc::AudioProcessing *p = ap->processor.get();
 
     if (num_channels != ap->capture_channels)
         return webrtc::AudioProcessing::kBadParameterError;
@@ -188,7 +187,7 @@ int ProcessStream(ApmHandle handle, float *samples, int num_channels) {
     deinterleave(samples, ap->capture_buffer, num_channels, APM_NUM_SAMPLES_PER_FRAME);
 
     // Process
-    int result = p->ProcessStream(
+    int result = ap->processor->ProcessStream(
             ap->capture_ptrs.data(),
             ap->capture_stream_config,
             ap->capture_stream_config,
@@ -207,13 +206,12 @@ int ProcessIntStream(ApmHandle handle, int16_t *samples, int num_channels) {
         return webrtc::AudioProcessing::kBadParameterError;
 
     auto *ap = static_cast<AudioProcessor *>(handle);
-    webrtc::AudioProcessing *p = ap->processor.get();
 
     if (num_channels != ap->capture_channels)
         return webrtc::AudioProcessing::kBadParameterError;
 
     // Process
-    int result = p->ProcessStream(
+    int result = ap->processor->ProcessStream(
             samples,
             ap->capture_stream_config,
             ap->capture_stream_config,
@@ -273,8 +271,7 @@ ApmStats GetStatistics(ApmHandle handle) {
     if (!handle) return stats;
 
     auto *ap = static_cast<AudioProcessor *>(handle);
-    webrtc::AudioProcessing *p = ap->processor.get();
-    webrtc::AudioProcessingStats s = p->GetStatistics();
+    webrtc::AudioProcessingStats s = ap->processor->GetStatistics();
     // Echo detection
     stats.echo_return_loss = s.echo_return_loss.value_or(0.0);
     stats.echo_return_loss_enhancement = s.echo_return_loss_enhancement.value_or(0.0);
