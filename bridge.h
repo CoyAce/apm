@@ -112,11 +112,13 @@ void Destroy(ApmHandle handle);
 // samples: interleaved float samples, length = num_channels * NUM_SAMPLES_PER_FRAME
 // Returns 0 on success, error code on failure
 int ProcessStream(ApmHandle handle, float* samples, int num_channels);
+int ProcessIntStream(ApmHandle handle, int16_t * samples, int num_channels);
 
 // Process a render (speaker) frame for echo cancellation reference
 // samples: interleaved float samples, length = num_channels * NUM_SAMPLES_PER_FRAME
 // Returns 0 on success, error code on failure
 int ProcessReverseStream(ApmHandle handle, float* samples, int num_channels);
+int ProcessReverseIntStream(ApmHandle handle, int16_t* samples, int num_channels);
 
 // Get statistics from the last capture frame processing
 ApmStats GetStatistics(ApmHandle handle);

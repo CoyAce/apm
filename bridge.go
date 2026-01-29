@@ -196,6 +196,29 @@ func (h *Handle) ProcessCaptureFrame(samples []float32, numChannels int) error {
 	return nil
 }
 
+func (h *Handle) ProcessCaptureIntFrame(samples []int16, numChannels int) error {
+	if h.ptr == nil {
+		return fmt.Errorf("audio processor not initialized")
+	}
+
+	expectedLen := numChannels * NumSamplesPerFrame
+	if len(samples) != expectedLen {
+		return fmt.Errorf("expected %d samples, got %d", expectedLen, len(samples))
+	}
+
+	result := C.ProcessIntStream(
+		h.ptr,
+		(*C.int16_t)(unsafe.Pointer(&samples[0])),
+		C.int(numChannels),
+	)
+
+	if C.is_success(result) == 0 {
+		return fmt.Errorf("failed to process capture frame: error code %d", int(result))
+	}
+
+	return nil
+}
+
 // ProcessRenderFrame processes a render (speaker) frame for echo cancellation
 // samples should be interleaved float32 samples with length = numChannels * NumSamplesPerFrame
 func (h *Handle) ProcessRenderFrame(samples []float32, numChannels int) error {
@@ -211,6 +234,29 @@ func (h *Handle) ProcessRenderFrame(samples []float32, numChannels int) error {
 	result := C.ProcessReverseStream(
 		h.ptr,
 		(*C.float)(unsafe.Pointer(&samples[0])),
+		C.int(numChannels),
+	)
+
+	if C.is_success(result) == 0 {
+		return fmt.Errorf("failed to process render frame: error code %d", int(result))
+	}
+
+	return nil
+}
+
+func (h *Handle) ProcessRenderIntFrame(samples []int16, numChannels int) error {
+	if h.ptr == nil {
+		return fmt.Errorf("audio processor not initialized")
+	}
+
+	expectedLen := numChannels * NumSamplesPerFrame
+	if len(samples) != expectedLen {
+		return fmt.Errorf("expected %d samples, got %d", expectedLen, len(samples))
+	}
+
+	result := C.ProcessReverseIntStream(
+		h.ptr,
+		(*C.int16_t)(unsafe.Pointer(&samples[0])),
 		C.int(numChannels),
 	)
 

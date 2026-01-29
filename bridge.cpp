@@ -4,7 +4,6 @@
 
 #include <memory>
 #include <vector>
-#include <algorithm>
 
 #ifndef WEBRTC_POSIX
 #define WEBRTC_POSIX
@@ -36,7 +35,10 @@ namespace {
     };
 
 // Helper to deinterleave audio from interleaved to channel-separated format
-    void deinterleave(const float *src, std::vector<std::vector<float>> &dst, int num_channels, int num_samples) {
+    template<typename T>
+    typename std::enable_if<std::is_arithmetic<T>::value>::type
+    deinterleave(const T *src, std::vector<std::vector<T>> &dst,
+                 int num_channels, int num_samples) {
         for (int ch = 0; ch < num_channels; ++ch) {
             for (int i = 0; i < num_samples; ++i) {
                 dst[ch][i] = src[i * num_channels + ch];
@@ -45,7 +47,10 @@ namespace {
     }
 
 // Helper to interleave audio from channel-separated to interleaved format
-    void interleave(const std::vector<std::vector<float>> &src, float *dst, int num_channels, int num_samples) {
+    template<typename T>
+    typename std::enable_if<std::is_arithmetic<T>::value>::type
+    interleave(const std::vector<std::vector<T>> &src, T *dst,
+               int num_channels, int num_samples) {
         for (int ch = 0; ch < num_channels; ++ch) {
             for (int i = 0; i < num_samples; ++i) {
                 dst[i * num_channels + ch] = src[ch][i];
@@ -127,7 +132,7 @@ ApmHandle Create(ApmConfig apmConfig, int *error_code) {
         return nullptr;
     }
     // set stream delay
-    if (apmConfig.echo_cancellation.enabled){
+    if (apmConfig.echo_cancellation.enabled) {
         ap->processor->set_stream_delay_ms(apmConfig.echo_cancellation.stream_delay);
     }
 
@@ -197,8 +202,29 @@ int ProcessStream(ApmHandle handle, float *samples, int num_channels) {
     return result;
 }
 
+int ProcessIntStream(ApmHandle handle, int16_t *samples, int num_channels) {
+    if (!handle || !samples)
+        return webrtc::AudioProcessing::kBadParameterError;
+
+    auto *ap = static_cast<AudioProcessor *>(handle);
+    webrtc::AudioProcessing *p = ap->processor.get();
+
+    if (num_channels != ap->capture_channels)
+        return webrtc::AudioProcessing::kBadParameterError;
+
+    // Process
+    int result = p->ProcessStream(
+            samples,
+            ap->capture_stream_config,
+            ap->capture_stream_config,
+            samples);
+
+    return result;
+}
+
 int ProcessReverseStream(ApmHandle handle, float *samples, int num_channels) {
-    if (!handle || !samples) return -1;
+    if (!handle || !samples)
+        return webrtc::AudioProcessing::kBadParameterError;
 
     auto *ap = static_cast<AudioProcessor *>(handle);
 
@@ -219,6 +245,24 @@ int ProcessReverseStream(ApmHandle handle, float *samples, int num_channels) {
         // Interleave output back
         interleave(ap->render_buffer, samples, num_channels, APM_NUM_SAMPLES_PER_FRAME);
     }
+
+    return result;
+}
+
+int ProcessReverseIntStream(ApmHandle handle, int16_t *samples, int num_channels) {
+    if (!handle || !samples) return -1;
+
+    auto *ap = static_cast<AudioProcessor *>(handle);
+
+    if (num_channels != ap->render_channels)
+        return webrtc::AudioProcessing::kBadParameterError;;
+
+    // Process reverse stream
+    int result = ap->processor->ProcessReverseStream(
+            samples,
+            ap->render_stream_config,
+            ap->render_stream_config,
+            samples);
 
     return result;
 }

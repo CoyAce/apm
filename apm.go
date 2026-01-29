@@ -33,10 +33,9 @@ import (
 
 // Processor is the main APM instance
 type Processor struct {
-	handle      *Handle
-	config      Config
-	mu          sync.Mutex
-	numChannels int
+	handle *Handle
+	config Config
+	mu     sync.Mutex
 }
 
 // New creates a new audio processor with the given configuration
@@ -48,9 +47,8 @@ func New(config Config) (*Processor, error) {
 	}
 
 	p := &Processor{
-		handle:      handle,
-		config:      config,
-		numChannels: config.CaptureChannels,
+		handle: handle,
+		config: config,
 	}
 
 	return p, nil
@@ -70,60 +68,27 @@ func (p *Processor) Initialize() {
 // ProcessCapture processes microphone input (near-end signal)
 // Returns processed audio and voice activity detection result
 // Input samples should be float32 in range [-1.0, 1.0]
-func (p *Processor) ProcessCapture(samples []float32) ([]float32, error) {
+func (p *Processor) ProcessCapture(samples []float32) error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
 	if p.handle == nil {
-		return nil, fmt.Errorf("processor is closed")
+		return fmt.Errorf("processor is closed")
 	}
 
-	expectedLen := p.numChannels * NumSamplesPerFrame
-	if len(samples) != expectedLen {
-		return nil, fmt.Errorf("expected %d samples (%d channels x %d samples/frame), got %d",
-			expectedLen, p.numChannels, NumSamplesPerFrame, len(samples))
-	}
-
-	// Make a copy to avoid modifying the input
-	output := make([]float32, len(samples))
-	copy(output, samples)
-
-	err := p.handle.ProcessCaptureFrame(output, p.numChannels)
-	if err != nil {
-		return nil, err
-	}
-
-	return output, nil
+	return p.handle.ProcessCaptureFrame(samples, p.config.CaptureChannels)
 }
 
 // ProcessCaptureInt16 processes microphone input with int16 samples
-// This is a convenience method that converts from/to int16 format
-func (p *Processor) ProcessCaptureInt16(samples []int16) ([]int16, error) {
-	// Convert int16 to float32
-	floatSamples := make([]float32, len(samples))
-	for i, s := range samples {
-		floatSamples[i] = float32(s) / 32768.0
-	}
+func (p *Processor) ProcessCaptureInt16(samples []int16) error {
+	p.mu.Lock()
+	defer p.mu.Unlock()
 
+	if p.handle == nil {
+		return fmt.Errorf("processor is closed")
+	}
 	// Process
-	output, err := p.ProcessCapture(floatSamples)
-	if err != nil {
-		return nil, err
-	}
-
-	// Convert back to int16
-	int16Output := make([]int16, len(output))
-	for i, s := range output {
-		// Clamp and convert
-		if s > 1.0 {
-			s = 1.0
-		} else if s < -1.0 {
-			s = -1.0
-		}
-		int16Output[i] = int16(s * 32767.0)
-	}
-
-	return int16Output, nil
+	return p.handle.ProcessCaptureIntFrame(samples, p.config.CaptureChannels)
 }
 
 // ProcessRender provides speaker output (far-end signal) for echo cancellation
@@ -136,29 +101,18 @@ func (p *Processor) ProcessRender(samples []float32) error {
 		return fmt.Errorf("processor is closed")
 	}
 
-	expectedLen := p.numChannels * NumSamplesPerFrame
-	if len(samples) != expectedLen {
-		return fmt.Errorf("expected %d samples (%d channels x %d samples/frame), got %d",
-			expectedLen, p.numChannels, NumSamplesPerFrame, len(samples))
-	}
-
-	// Make a copy to avoid modifying the input
-	renderSamples := make([]float32, len(samples))
-	copy(renderSamples, samples)
-
-	return p.handle.ProcessRenderFrame(renderSamples, p.numChannels)
+	return p.handle.ProcessRenderFrame(samples, p.config.RenderChannels)
 }
 
 // ProcessRenderInt16 provides speaker output with int16 samples
-// This is a convenience method that converts from int16 format
 func (p *Processor) ProcessRenderInt16(samples []int16) error {
-	// Convert int16 to float32
-	floatSamples := make([]float32, len(samples))
-	for i, s := range samples {
-		floatSamples[i] = float32(s) / 32768.0
-	}
+	p.mu.Lock()
+	defer p.mu.Unlock()
 
-	return p.ProcessRender(floatSamples)
+	if p.handle == nil {
+		return fmt.Errorf("processor is closed")
+	}
+	return p.handle.ProcessRenderIntFrame(samples, p.config.RenderChannels)
 }
 
 // SetStreamDelay updates the estimated delay between render and capture
