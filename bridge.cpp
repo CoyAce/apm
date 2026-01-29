@@ -64,6 +64,17 @@ namespace {
         // High pass filter
         config.high_pass_filter.enabled = apmConfig.high_pass_filter_enabled;
 
+        // Capture level adjustment
+        config.capture_level_adjustment.enabled = apmConfig.capture_level_adjustment.enabled;
+        if (config.capture_level_adjustment.enabled) {
+            config.capture_level_adjustment.pre_gain_factor = apmConfig.capture_level_adjustment.pre_gain_factor;
+            config.capture_level_adjustment.post_gain_factor = apmConfig.capture_level_adjustment.post_gain_factor;
+            config.capture_level_adjustment.analog_mic_gain_emulation.enabled =
+                    config.capture_level_adjustment.analog_mic_gain_emulation.enabled;
+            config.capture_level_adjustment.analog_mic_gain_emulation.initial_level =
+                    config.capture_level_adjustment.analog_mic_gain_emulation.initial_level;
+        }
+
         // Echo cancellation
         config.echo_canceller.enabled = apmConfig.echo_cancellation.enabled;
         config.echo_canceller.mobile_mode = apmConfig.echo_cancellation.mobile_mode;
@@ -72,13 +83,11 @@ namespace {
         }
 
         // Gain control
-        config.gain_controller1.enabled = apmConfig.gain_control.enabled;
-        config.gain_controller1.mode =
-                static_cast<webrtc::AudioProcessing::Config::GainController1::Mode>(
-                        apmConfig.gain_control.mode);
-        config.gain_controller1.target_level_dbfs = apmConfig.gain_control.target_level_dbfs;
-        config.gain_controller1.compression_gain_db = apmConfig.gain_control.compression_gain_db;
-        config.gain_controller1.enable_limiter = apmConfig.gain_control.enable_limiter != 0;
+        config.gain_controller2.enabled = apmConfig.gain_control.enabled;
+        config.gain_controller2.input_volume_controller.enabled = apmConfig.gain_control.input_volume_controller_enabled;
+        config.gain_controller2.adaptive_digital.enabled = true;
+        config.gain_controller2.adaptive_digital.headroom_db = apmConfig.gain_control.headroom_db;
+        config.gain_controller2.adaptive_digital.max_gain_db = apmConfig.gain_control.max_gain_db;
 
         // Noise suppression
         config.noise_suppression.enabled = apmConfig.noise_suppression.enabled;
@@ -284,6 +293,19 @@ ApmStats GetStatistics(ApmHandle handle) {
     stats.delay_ms = s.delay_ms.value_or(0);
 
     return stats;
+}
+
+void set_stream_analog_level(ApmHandle handle, int level) {
+    if (!handle) return;
+
+    auto *ap = static_cast<AudioProcessor *>(handle);
+    ap->processor->set_stream_analog_level(level);
+}
+
+int recommended_stream_analog_level(ApmHandle handle) {
+    if (!handle) return 0;
+    auto *ap = static_cast<AudioProcessor *>(handle);
+    return ap->processor->recommended_stream_analog_level();
 }
 
 void set_stream_delay_ms(ApmHandle handle, int delay_ms) {

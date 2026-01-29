@@ -5,12 +5,13 @@
 #define APM_WRAPPER_H
 #include <stdint.h>
 #include <stdbool.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 // Opaque handle to the audio processor
-typedef void* ApmHandle;
+typedef void *ApmHandle;
 
 // Sample rate must be one of: 8000, 16000, 32000, 48000 Hz
 // Frame duration is fixed at 10ms
@@ -36,55 +37,55 @@ typedef enum {
     AGC_MODE_FIXED_DIGITAL = 2
 } AgcMode;
 
-// Voice detection likelihood
-typedef enum {
-    VAD_LIKELIHOOD_VERY_LOW = 0,
-    VAD_LIKELIHOOD_LOW = 1,
-    VAD_LIKELIHOOD_MODERATE = 2,
-    VAD_LIKELIHOOD_HIGH = 3
-} VadLikelihood;
+typedef struct ApmAnalogMicGainEmulation {
+    bool enabled;
+    // Initial analog gain level to use for the emulated analog gain. Must
+    // be in the range [0...255].
+    int initial_level;
+} ApmAnalogMicGainEmulation;
+
+// Capture level adjustment configuration
+typedef struct ApmCaptureLevelAdjustment {
+    bool enabled;
+    float pre_gain_factor;
+    float post_gain_factor;
+    ApmAnalogMicGainEmulation analog_mic_gain_emulation;
+} ApmCaptureLevelAdjustment;
 
 // Echo cancellation configuration
-typedef struct {
+typedef struct ApmEchoCancellation {
     bool enabled;
     bool mobile_mode;
     int stream_delay;
 } ApmEchoCancellation;
 
 // Gain control configuration
-typedef struct {
+typedef struct ApmGainControl {
     bool enabled;
-    AgcMode mode;
-    int target_level_dbfs;      // [0, 31]
-    int compression_gain_db;    // [0, 90]
-    bool enable_limiter;
+    bool input_volume_controller_enabled;
+    float headroom_db;
+    float max_gain_db;
 } ApmGainControl;
 
 // Noise suppression configuration
-typedef struct {
+typedef struct ApmNoiseSuppression {
     bool enabled;
     NsLevel suppression_level;
 } ApmNoiseSuppression;
 
-// Voice detection configuration
-typedef struct {
-    bool enabled;
-    VadLikelihood detection_likelihood;
-} ApmVoiceDetection;
-
 // Full runtime configuration
-typedef struct {
+typedef struct ApmConfig {
+    ApmCaptureLevelAdjustment capture_level_adjustment;
     ApmEchoCancellation echo_cancellation;
     ApmGainControl gain_control;
     ApmNoiseSuppression noise_suppression;
-    ApmVoiceDetection voice_detection;
     bool high_pass_filter_enabled;
     int capture_channels;
     int render_channels;
 } ApmConfig;
 
 // Statistics from processing
-typedef struct {
+typedef struct ApmStats {
     double residual_echo_likelihood;
 
     double echo_return_loss;
@@ -98,7 +99,7 @@ typedef struct {
 
 // Create a new audio processor instance
 // Returns NULL on failure, sets error code
-ApmHandle Create(ApmConfig apmConfig, int* error_code);
+ApmHandle Create(ApmConfig apmConfig, int *error_code);
 
 void Initialize(ApmHandle handle);
 
@@ -111,14 +112,14 @@ void Destroy(ApmHandle handle);
 // Process a capture (microphone) frame
 // samples: interleaved float samples, length = num_channels * NUM_SAMPLES_PER_FRAME
 // Returns 0 on success, error code on failure
-int ProcessStream(ApmHandle handle, float* samples, int num_channels);
-int ProcessIntStream(ApmHandle handle, int16_t * samples, int num_channels);
+int ProcessStream(ApmHandle handle, float *samples, int num_channels);
+int ProcessIntStream(ApmHandle handle, int16_t *samples, int num_channels);
 
 // Process a render (speaker) frame for echo cancellation reference
 // samples: interleaved float samples, length = num_channels * NUM_SAMPLES_PER_FRAME
 // Returns 0 on success, error code on failure
-int ProcessReverseStream(ApmHandle handle, float* samples, int num_channels);
-int ProcessReverseIntStream(ApmHandle handle, int16_t* samples, int num_channels);
+int ProcessReverseStream(ApmHandle handle, float *samples, int num_channels);
+int ProcessReverseIntStream(ApmHandle handle, int16_t *samples, int num_channels);
 
 // Get statistics from the last capture frame processing
 ApmStats GetStatistics(ApmHandle handle);
@@ -126,6 +127,17 @@ ApmStats GetStatistics(ApmHandle handle);
 // Set stream delay for echo cancellation (in milliseconds)
 void set_stream_delay_ms(ApmHandle handle, int delay_ms);
 int stream_delay_ms(ApmHandle handle);
+
+// This must be called prior to ProcessStream() if and only if adaptive analog
+// gain control is enabled, to pass the current analog level from the audio
+// HAL. Must be within the range [0, 255].
+void set_stream_analog_level(ApmHandle handle, int level);
+
+// When an analog mode is set, this should be called after
+// `set_stream_analog_level()` and `ProcessStream()` to obtain the recommended
+// new analog level for the audio HAL. It is the user's responsibility to
+// apply this level.
+int recommended_stream_analog_level(ApmHandle handle);
 
 // Signal that output will be muted (hint for AEC/AGC)
 void set_output_will_be_muted(ApmHandle handle, bool muted);

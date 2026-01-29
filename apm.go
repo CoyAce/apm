@@ -115,17 +115,37 @@ func (p *Processor) ProcessRenderInt16(samples []int16) error {
 	return p.handle.ProcessRenderIntFrame(samples, p.config.RenderChannels)
 }
 
-// SetStreamDelay updates the estimated delay between render and capture
-func (p *Processor) SetStreamDelay(delayMs int) error {
+func (p *Processor) SetStreamAnalogLevel(level int) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
 	if p.handle == nil {
-		return fmt.Errorf("processor is closed")
+		return
+	}
+
+	p.handle.SetStreamAnalogLevel(level)
+}
+
+func (p *Processor) RecommendedStreamAnalogLevel() int {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+
+	if p.handle == nil {
+		return -1
+	}
+	return p.handle.RecommendedStreamAnalogLevel()
+}
+
+// SetStreamDelay updates the estimated delay between render and capture
+func (p *Processor) SetStreamDelay(delayMs int) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+
+	if p.handle == nil {
+		return
 	}
 
 	p.handle.SetStreamDelayMs(delayMs)
-	return nil
 }
 
 func (p *Processor) StreamDelay() int {

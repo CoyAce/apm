@@ -41,24 +41,19 @@ const (
 	NsLevelVeryHigh NsLevel = C.NS_LEVEL_VERY_HIGH
 )
 
-// AgcMode represents automatic gain control modes
-type AgcMode int
+type AnalogMicGainEmulationConfig struct {
+	Enabled bool
+	// Initial analog gain level to use for the emulated analog gain. Must
+	// be in the range [0...255].
+	InitialLevel int
+}
 
-const (
-	AgcModeAdaptiveAnalog  AgcMode = C.AGC_MODE_ADAPTIVE_ANALOG
-	AgcModeAdaptiveDigital AgcMode = C.AGC_MODE_ADAPTIVE_DIGITAL
-	AgcModeFixedDigital    AgcMode = C.AGC_MODE_FIXED_DIGITAL
-)
-
-// VadLikelihood represents voice activity detection likelihood levels
-type VadLikelihood int
-
-const (
-	VadLikelihoodVeryLow  VadLikelihood = C.VAD_LIKELIHOOD_VERY_LOW
-	VadLikelihoodLow      VadLikelihood = C.VAD_LIKELIHOOD_LOW
-	VadLikelihoodModerate VadLikelihood = C.VAD_LIKELIHOOD_MODERATE
-	VadLikelihoodHigh     VadLikelihood = C.VAD_LIKELIHOOD_HIGH
-)
+type CaptureLevelAdjustmentConfig struct {
+	Enabled                bool
+	PreGainFactor          float32
+	PostGainFactor         float32
+	AnalogMicGainEmulation AnalogMicGainEmulationConfig
+}
 
 // EchoCancellationConfig holds echo cancellation settings
 type EchoCancellationConfig struct {
@@ -69,11 +64,10 @@ type EchoCancellationConfig struct {
 
 // GainControlConfig holds automatic gain control settings
 type GainControlConfig struct {
-	Enabled           bool
-	Mode              AgcMode
-	TargetLevelDbfs   int // [0, 31]
-	CompressionGainDb int // [0, 90]
-	EnableLimiter     bool
+	Enabled                      bool
+	InputVolumeControllerEnabled bool
+	HeadroomDB                   float32
+	MaxGainDb                    float32
 }
 
 // NoiseSuppressionConfig holds noise suppression settings
@@ -84,12 +78,13 @@ type NoiseSuppressionConfig struct {
 
 // Config holds all runtime configuration options
 type Config struct {
-	EchoCancellation      EchoCancellationConfig
-	GainControl           GainControlConfig
-	NoiseSuppression      NoiseSuppressionConfig
-	HighPassFilterEnabled bool
-	CaptureChannels       int
-	RenderChannels        int
+	CaptureLevelAdjustment CaptureLevelAdjustmentConfig
+	EchoCancellation       EchoCancellationConfig
+	GainControl            GainControlConfig
+	NoiseSuppression       NoiseSuppressionConfig
+	HighPassFilterEnabled  bool
+	CaptureChannels        int
+	RenderChannels         int
 }
 
 // Stats holds statistics from the audio processor
@@ -150,17 +145,25 @@ func parseConfig(config Config) C.ApmConfig {
 	cConfig := C.ApmConfig{
 		capture_channels: C.int(config.CaptureChannels),
 		render_channels:  C.int(config.RenderChannels),
+		capture_level_adjustment: C.ApmCaptureLevelAdjustment{
+			enabled:          C.bool(config.CaptureLevelAdjustment.Enabled),
+			pre_gain_factor:  C.float(config.CaptureLevelAdjustment.PreGainFactor),
+			post_gain_factor: C.float(config.CaptureLevelAdjustment.PostGainFactor),
+			analog_mic_gain_emulation: C.ApmAnalogMicGainEmulation{
+				enabled:       C.bool(config.CaptureLevelAdjustment.AnalogMicGainEmulation.Enabled),
+				initial_level: C.int(config.CaptureLevelAdjustment.AnalogMicGainEmulation.InitialLevel),
+			},
+		},
 		echo_cancellation: C.ApmEchoCancellation{
 			enabled:      C.bool(config.EchoCancellation.Enabled),
 			mobile_mode:  C.bool(config.EchoCancellation.MobileMode),
 			stream_delay: C.int(config.EchoCancellation.StreamDelayMs),
 		},
 		gain_control: C.ApmGainControl{
-			enabled:             C.bool(config.GainControl.Enabled),
-			mode:                C.AgcMode(config.GainControl.Mode),
-			target_level_dbfs:   C.int(config.GainControl.TargetLevelDbfs),
-			compression_gain_db: C.int(config.GainControl.CompressionGainDb),
-			enable_limiter:      C.bool(config.GainControl.EnableLimiter),
+			enabled:                         C.bool(config.GainControl.Enabled),
+			input_volume_controller_enabled: C.bool(config.GainControl.InputVolumeControllerEnabled),
+			headroom_db:                     C.float(config.GainControl.HeadroomDB),
+			max_gain_db:                     C.float(config.GainControl.MaxGainDb),
 		},
 		noise_suppression: C.ApmNoiseSuppression{
 			enabled:           C.bool(config.NoiseSuppression.Enabled),
@@ -286,6 +289,20 @@ func (h *Handle) GetStats() Stats {
 	stats.DelayMs = int(cStats.delay_ms)
 
 	return stats
+}
+
+func (h *Handle) SetStreamAnalogLevel(level int) {
+	if h.ptr == nil {
+		return
+	}
+	C.set_stream_analog_level(h.ptr, C.int(level))
+}
+
+func (h *Handle) RecommendedStreamAnalogLevel() int {
+	if h.ptr == nil {
+		return 0
+	}
+	return int(C.recommended_stream_analog_level(h.ptr))
 }
 
 // SetStreamDelayMs sets the delay between render and capture streams
