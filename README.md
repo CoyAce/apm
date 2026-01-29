@@ -34,3 +34,29 @@ go get github.com/CoyAce/apm
 ```go
 import "github.com/CoyAce/apm"
 ```
+
+3. **Example**
+```go
+config := apm.Config{
+		CaptureChannels:       1,
+		RenderChannels:        1,
+		HighPassFilterEnabled: true,
+		EchoCancellation:      apm.EchoCancellationConfig{Enabled: true, MobileMode: mobile, StreamDelayMs: 54},
+		NoiseSuppression:      apm.NoiseSuppressionConfig{Enabled: true, SuppressionLevel: apm.NsLevelModerate},
+		GainControl: apm.GainControlConfig{
+			Enabled:                      true,
+			InputVolumeControllerEnabled: true,
+			HeadroomDB:                   15,
+			MaxGainDb:                    50,
+		},
+	}
+processor, _ := apm.New(config)
+processor.SetStreamAnalogLevel(180)
+
+// add far end
+_ = ae.processor.ProcessRenderInt16(farEnd)
+
+// process near end
+ae.processor.SetStreamDelay(config.EchoCancellation.StreamDelayMs)
+_ := ae.processor.ProcessCapture(output)
+```
