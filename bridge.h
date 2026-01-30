@@ -65,6 +65,7 @@ typedef struct ApmGainControl {
     bool input_volume_controller_enabled;
     float headroom_db;
     float max_gain_db;
+    float gain_db;
 } ApmGainControl;
 
 // Noise suppression configuration

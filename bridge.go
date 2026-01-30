@@ -67,7 +67,8 @@ type GainControlConfig struct {
 	Enabled                      bool
 	InputVolumeControllerEnabled bool
 	HeadroomDB                   float32
-	MaxGainDb                    float32
+	MaxGainDB                    float32
+	GainDB                       float32
 }
 
 // NoiseSuppressionConfig holds noise suppression settings
@@ -163,7 +164,8 @@ func parseConfig(config Config) C.ApmConfig {
 			enabled:                         C.bool(config.GainControl.Enabled),
 			input_volume_controller_enabled: C.bool(config.GainControl.InputVolumeControllerEnabled),
 			headroom_db:                     C.float(config.GainControl.HeadroomDB),
-			max_gain_db:                     C.float(config.GainControl.MaxGainDb),
+			max_gain_db:                     C.float(config.GainControl.MaxGainDB),
+			gain_db:                         C.float(config.GainControl.GainDB),
 		},
 		noise_suppression: C.ApmNoiseSuppression{
 			enabled:           C.bool(config.NoiseSuppression.Enabled),

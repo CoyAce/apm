@@ -88,6 +88,7 @@ namespace {
         config.gain_controller2.adaptive_digital.enabled = true;
         config.gain_controller2.adaptive_digital.headroom_db = apmConfig.gain_control.headroom_db;
         config.gain_controller2.adaptive_digital.max_gain_db = apmConfig.gain_control.max_gain_db;
+        config.gain_controller2.fixed_digital.gain_db = apmConfig.gain_control.gain_db;
 
         // Noise suppression
         config.noise_suppression.enabled = apmConfig.noise_suppression.enabled;
