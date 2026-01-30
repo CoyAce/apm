@@ -70,9 +70,9 @@ namespace {
             config.capture_level_adjustment.pre_gain_factor = apmConfig.capture_level_adjustment.pre_gain_factor;
             config.capture_level_adjustment.post_gain_factor = apmConfig.capture_level_adjustment.post_gain_factor;
             config.capture_level_adjustment.analog_mic_gain_emulation.enabled =
-                    config.capture_level_adjustment.analog_mic_gain_emulation.enabled;
+                    apmConfig.capture_level_adjustment.analog_mic_gain_emulation.enabled;
             config.capture_level_adjustment.analog_mic_gain_emulation.initial_level =
-                    config.capture_level_adjustment.analog_mic_gain_emulation.initial_level;
+                    apmConfig.capture_level_adjustment.analog_mic_gain_emulation.initial_level;
         }
 
         // Echo cancellation
